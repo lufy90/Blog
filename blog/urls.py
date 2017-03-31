@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^', include('home.urls')),
 #    url(r'^$', include('home.urls')),
     url(r'^admin/', admin.site.urls),
+    url(r'^tinymce/', include('tinymce.urls')),
 ]
