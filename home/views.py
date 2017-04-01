@@ -19,6 +19,11 @@ class PostsView(generic.ListView):
 class DetailView(generic.DetailView):
   model = Post
   template_name = 'home/detail.html'
+
+class Test(generic.DetailView):
+  ''' debugging and learn the machanism of view. '''
+  model = Post
+  template_name = 'home/test.html'
 #def home(request):
 #    template = loader.get_template('home/home.html')
 #    return HttpResponse(template.render(request))

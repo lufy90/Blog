@@ -16,6 +16,8 @@ class Category(models.Model):
   def __unicode__(self):
     return self.name
 
+
+from django.template.defaultfilters import slugify
 class Post(models.Model):
   title = models.CharField(max_length=200, null=True)
   slug = models.SlugField(max_length=255, blank=True, null=True)
@@ -31,5 +33,24 @@ class Post(models.Model):
 
   def __unicode__(self):
     return self.title
+
+  def save(self, *args, **kwargs):
+    self.slug = slugify(self.title)
+    super(Post, self).save(*args, **kwargs)
+
+  def get_pre_id(self):
+    ''' get previous post id '''
+    pre_id = self.id - 1
+    while pre_id >= Post.objects.first().id:
+      if Post.objects.get(id=pre_id):
+        break
+      pre_id = pre_id-1
+    return pre_id
+
+  def get_next_id(self):
+    ''' get next post id '''
+    pass
+# about slug: 
+# https://github.com/neithere/django-autoslug
 
 # Create your models here.
