@@ -6,7 +6,9 @@ from django.template import loader
 
 from .models import Post
 
+# home page view.
 class HomeView(generic.TemplateView):
+  ''' home page view '''
   template_name = 'home/home.html'
 
 class PostsView(generic.ListView):
@@ -16,14 +18,39 @@ class PostsView(generic.ListView):
     """ Return all of the posts """
     return Post.objects.order_by('-last_modified')
 
+# display posts content.
 class DetailView(generic.DetailView):
+  ''' display posts content '''
   model = Post
   template_name = 'home/detail.html'
+  def get_context_data(self, **kwargs):
+    context = super(DetailView, self).get_context_data(**kwargs)
+    try:
+      context['next'] = self.get_object().get_next_by_created_on()
+    except:
+      context['next'] = None
+    try:
+      context['prev'] = self.get_object().get_previous_by_created_on()
+    except:
+      context['prev'] = None
+    return context
 
+# Test view for purpose of debugging and learn.
 class Test(generic.DetailView):
   ''' debugging and learn the machanism of view. '''
   model = Post
   template_name = 'home/test.html'
+  def get_context_data(self, **kwargs):
+    context = super(Test, self).get_context_data(**kwargs)
+    try:
+      context['next'] = self.get_object().get_next_by_created_on()
+    except:
+      context['next'] = None
+    try:
+      context['prev'] = self.get_object().get_previous_by_created_on()
+    except:
+      context['prev'] = None
+    return context
 #def home(request):
 #    template = loader.get_template('home/home.html')
 #    return HttpResponse(template.render(request))
