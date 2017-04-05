@@ -48,6 +48,21 @@ class Post(models.Model):
     head = f.sub('', html)[:200]
     return head
 
+class Comment(models.Model):
+  ''' define post comments '''
+  post = models.ForeignKey(Post, related_name='comments')
+  author = models.CharField(max_length=200)
+  text = models.TextField()
+  created_on = models.DateTimeField(auto_now=True)
+  approve_comment = models.BooleanField(default=False)
+
+  def approv(self):
+    self.approve_comment = True
+    self.save()
+
+  def __unicode__(self):
+    return self.text[:50]
+
 # about slug: 
 # https://github.com/neithere/django-autoslug
 

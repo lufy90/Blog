@@ -39,6 +39,21 @@ class DetailView(generic.DetailView):
       context['prev'] = None
     return context
 
+
+
+from django.views.generic.edit import FormView
+from .form import CommentForm
+
+class CommentView(FormView):
+  from_class = CommentForm
+  template_name = 'home/detail.html'
+
+  def form_valid(self, form):
+    return super(CommentView, self).form_valid(form)
+
+
+
+
 # Test view for purpose of debugging and learn.
 class Test(generic.DetailView):
   ''' debugging and learn the machanism of view. '''

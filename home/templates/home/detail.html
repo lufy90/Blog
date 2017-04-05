@@ -38,3 +38,12 @@
 {% else %}
 <a>No more next</a>
 {% endif %}
+
+{# comments #}
+<p><a href="{% url 'home:addcomment' post.id %}">Add comment</a></p>
+{% for comment in post.comments.all %}
+<p>{{ comment.created_on }} by {{ comment.author }}</p>
+<p>{{ comment.text }}</p>
+{% empty %}
+<p>No comments yet :(</p>
+{% endfor %}
