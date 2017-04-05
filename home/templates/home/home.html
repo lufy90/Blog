@@ -11,8 +11,8 @@
 {% load static %}
 {% for post in posts %}
 <h3><a href="{% url 'home:detail' post.id %}">{{ post.title }}</a></h3>
-<p>{{ post.get_content_head }}
-<a href="{% url 'home:detail' post.id %}">Show all</a></p>
+<p>{{ post.get_content_head }}...
+<a href="{% url 'home:detail' post.id %}">Full text</a></p>
 {% endfor %}
 {% else %}
 <p>No posts.</p>
