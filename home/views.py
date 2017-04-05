@@ -10,6 +10,10 @@ from .models import Post
 class HomeView(generic.TemplateView):
   ''' home page view '''
   template_name = 'home/home.html'
+  def get_context_data(self, **kwargs):
+    context = super(HomeView, self).get_context_data(**kwargs)
+    context['posts'] = Post.objects.order_by('-created_on')
+    return context
 
 class PostsView(generic.ListView):
   template_name = 'home/posts.html'
@@ -42,6 +46,7 @@ class Test(generic.DetailView):
   template_name = 'home/test.html'
   def get_context_data(self, **kwargs):
     context = super(Test, self).get_context_data(**kwargs)
+    context['content_head'] = self.get_object().get_content_head()
     try:
       context['next'] = self.get_object().get_next_by_created_on()
     except:

@@ -18,6 +18,8 @@ class Category(models.Model):
 
 
 from django.template.defaultfilters import slugify
+import re
+
 class Post(models.Model):
   title = models.CharField(max_length=200, null=True)
   slug = models.SlugField(max_length=255, blank=True, null=True)
@@ -28,6 +30,7 @@ class Post(models.Model):
   created_on = models.DateTimeField(auto_now_add=True)
   last_modified = models.DateTimeField(auto_now=True)
   author = models.ForeignKey(User, blank=True, null=True)
+#  content_head = models.TextField(blank=True, null=True)
   class Meta:
     verbose_name_plural = "Posts"
 
@@ -38,18 +41,13 @@ class Post(models.Model):
     self.slug = slugify(self.title)
     super(Post, self).save(*args, **kwargs)
 
-  def get_pre_id(self):
-    ''' get previous post id '''
-    pre_id = self.id - 1
-    while pre_id >= Post.objects.first().id:
-      if Post.objects.get(id=pre_id):
-        break
-      pre_id = pre_id-1
-    return pre_id
+  def get_content_head(self):
+    ''' remove the html tags and get text head '''
+    f = re.compile(r'</?\w+[^>]*>', re.S)
+    html = self.content
+    head = f.sub('', html)[:200]
+    return head
 
-  def get_next_id(self):
-    ''' get next post id '''
-    pass
 # about slug: 
 # https://github.com/neithere/django-autoslug
 
