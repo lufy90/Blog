@@ -29,6 +29,7 @@ class DetailView(generic.DetailView):
   template_name = 'home/detail.html'
   def get_context_data(self, **kwargs):
     context = super(DetailView, self).get_context_data(**kwargs)
+    # Get the next page and previous pave.
     try:
       context['next'] = self.get_object().get_next_by_created_on()
     except:
@@ -37,18 +38,33 @@ class DetailView(generic.DetailView):
       context['prev'] = self.get_object().get_previous_by_created_on()
     except:
       context['prev'] = None
+    # comment form
+#    kwargs['form'] = CommentForm()
     return context
 
 
 
 from django.views.generic.edit import FormView
-from .form import CommentForm
-
+from .forms import CommentForm
+from django.urls import reverse_lazy, reverse
+from .models import Comment
+from django.shortcuts import get_object_or_404
 class CommentView(FormView):
-  from_class = CommentForm
-  template_name = 'home/detail.html'
+  ''' Page for add comments '''
+  form_class = CommentForm
+  template_name = 'home/addcomment.html'
+  def get_post_pk(self):
+    post_pk = self.kwargs['pk']
+    return post_pk
+#  success_url = reverse_lazy('home:detail', kwargs={'id':get_post_id()})
 
   def form_valid(self, form):
+    self.success_url = reverse('home:detail', kwargs={'pk':self.get_post_pk()})
+    
+    a = form.save(commit=False)
+    a.post = Post.objects.get(pk=self.get_post_pk())
+    a.save()
+    
     return super(CommentView, self).form_valid(form)
 
 

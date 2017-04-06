@@ -25,7 +25,7 @@ SECRET_KEY = 'n*=w!@5c6*x#8v^j46c!v0$&^d0vo%t2it3hune3873&$i%of6'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [u'192.168.88.150', u'linux']
+ALLOWED_HOSTS = [u'192.168.32.70', u'test']
 
 
 # Application definition
@@ -107,7 +107,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 

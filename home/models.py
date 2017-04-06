@@ -50,7 +50,8 @@ class Post(models.Model):
 
 class Comment(models.Model):
   ''' define post comments '''
-  post = models.ForeignKey(Post, related_name='comments')
+  post = models.ForeignKey(Post, related_name='comments', 
+    on_delete=models.CASCADE)
   author = models.CharField(max_length=200)
   text = models.TextField()
   created_on = models.DateTimeField(auto_now=True)
@@ -61,7 +62,12 @@ class Comment(models.Model):
     self.save()
 
   def __unicode__(self):
-    return self.text[:50]
+    return self.text
+  def __str__(self):
+    return self.text[:20]
+  class Meta:
+    ''' Make ordering with created_on, when get objects from object.all() '''
+    ordering = ['-created_on']
 
 # about slug: 
 # https://github.com/neithere/django-autoslug
