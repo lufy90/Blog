@@ -40,6 +40,7 @@ class DetailView(generic.DetailView):
       context['prev'] = None
     # comment form
 #    kwargs['form'] = CommentForm()
+    context['form'] = CommentForm
     return context
 
 
@@ -52,7 +53,7 @@ from django.shortcuts import get_object_or_404
 class CommentView(FormView):
   ''' Page for add comments '''
   form_class = CommentForm
-  template_name = 'home/addcomment.html'
+  template_name = 'home/detail.html'
   def get_post_pk(self):
     post_pk = self.kwargs['pk']
     return post_pk
