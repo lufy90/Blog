@@ -11,6 +11,9 @@
 {% load static %}
 {% for post in posts %}
 <h3><a href="{% url 'home:detail' post.id %}">{{ post.title }}</a></h3>
+<p>{{ post.last_modified }} by {{ post.author }}, {{ post.comments.count }}
+comment(s)
+</p>
 <p>{{ post.get_content_head }}...
 <a href="{% url 'home:detail' post.id %}">Full text</a></p>
 {% endfor %}

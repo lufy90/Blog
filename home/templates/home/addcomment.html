@@ -1,5 +1,11 @@
 <form action="{% url 'home:addcomment' post.pk %}" method="post">
 {% csrf_token %}
-{{ form.as_p }}
-<input type="submit" value="Submmit" />
+{# {{ form.as_p }} #}
+<p>Text: <input type="text" name="text" /></p>
+{% if user.is_authenticated %}
+<p>Author:<input type="text" name="author" value="{{ user.username }}" /></p>
+{% else %}
+<p>Author:<input type="text" name="author" value="Anonymous" /></p>
+{% endif %}
+<input type="submit" value="Submmit"  />
 </form>

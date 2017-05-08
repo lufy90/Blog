@@ -44,10 +44,13 @@
 {# comments #}
 <p>Comments:</p>
 {% include "home/addcomment.html" %}
+
 {# <p><a href="{% url 'home:addcomment' post.id %}">Add comment</a></p> #}
+
+{# display comments #}
 {% for comment in post.comments.all %}
 <p>{{ comment.created_on }} by {{ comment.author }}</p>
-<p>{{ comment.text }}</p>
+<p>{{ comment.text }}<br /><a href="#">Reply</a></p>
 {% empty %}
 <p>No comments yet :(</p>
 {% endfor %}

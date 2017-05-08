@@ -57,6 +57,7 @@ class Comment(models.Model):
   created_on = models.DateTimeField(auto_now=True)
   approve_comment = models.BooleanField(default=False)
 
+
   def approv(self):
     self.approve_comment = True
     self.save()

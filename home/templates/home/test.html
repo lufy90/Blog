@@ -1,4 +1,6 @@
+{% include "home/base.html" %}
 {% if prev %}
+<p>
 <a href="{% url 'home:test' prev.id %}">Previous</a>
 {% else %}
 <a>No more previous</a>
@@ -7,6 +9,7 @@
 <a href="{% url 'home:test' next.id %}">Next</a>
 {% else %}
 <a>No more next</a>
+</p>
 {% endif %}
 
 {# Main content #}
@@ -28,4 +31,9 @@
 <a href="{% url 'home:test' next.id %}">Next</a>
 {% else %}
 <a>No more next</a>
+{% endif %}
+{% include "home/base.html" %}
+
+{% if user.is_authenticated %}
+<p> {{ user.username }}</p>
 {% endif %}
