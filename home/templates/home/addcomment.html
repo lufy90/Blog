@@ -2,11 +2,11 @@
 {% csrf_token %}
 {# {{ form.as_p }} #}
 <!-- <p>Text: <input type="text" name="text" /></p> -->
-<textarea name="text" cols="50" rows="4">Add your comments ^^</textarea>
+<textarea name="text" cols="50" rows="4" required></textarea>
 {% if user.is_authenticated %}
-<p>Author:<input type="text" name="author" value="{{ user.username }}" /></p>
+<p>Author:<input type="text" name="author" value="{{ user.username }}" required /></p>
 {% else %}
-<p>Author:<input type="text" name="author"  /></p>
+<p>Author:<input type="text" name="author" required /></p>
 {% endif %}
 <input type="submit" value="Submmit"  />
 </form>

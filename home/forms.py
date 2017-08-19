@@ -13,4 +13,7 @@ class CommentForm(forms.ModelForm):
     help_texts = {
 #      'text': _('Can this works?'),
     }
+  
+#  def as_p(self):
+#   pass 
 
