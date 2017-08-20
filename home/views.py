@@ -10,9 +10,24 @@ from .models import Post
 class HomeView(generic.TemplateView):
   ''' home page view '''
   template_name = 'home/home.html'
-  def get_context_data(self, **kwargs):
+  def get_context_data(self, page_no=1, **kwargs):
     context = super(HomeView, self).get_context_data(**kwargs)
-    context['posts'] = Post.objects.order_by('-created_on')
+    page_no = int(page_no)
+    posts_per_page = 10
+    a, b = (page_no-1) * posts_per_page, page_no * posts_per_page
+    context['posts'] = Post.objects.order_by('-created_on')[a:b]
+    page_no_max = Post.objects.count() / posts_per_page + 1
+    context['page_no'] = page_no
+    pre = page_no - 1
+    nex = page_no + 1
+    if (pre < 1):
+        context['prev'] = None
+    else:
+        context['prev'] = pre
+    if (nex > page_no_max):
+        context['next'] = None
+    else:
+        context['next'] = nex
     return context
 
 class PostsView(generic.ListView):

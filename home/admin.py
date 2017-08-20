@@ -10,7 +10,7 @@ admin.site.register(Category)
 
 class PostAdmin(admin.ModelAdmin):
   date_hierarchy = 'created_on'
-  fields = ('title', 'category', 'content')
+  fields = ('title', 'category', 'content', 'approve_comment')
   list_display = ('title', 'last_modified', 'author')
 
 #  formfield_overrides = {

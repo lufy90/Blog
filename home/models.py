@@ -30,6 +30,10 @@ class Post(models.Model):
   created_on = models.DateTimeField(auto_now_add=True)
   last_modified = models.DateTimeField(auto_now=True)
   author = models.ForeignKey(User, blank=True, null=True)
+  approve_comment = models.BooleanField(default=False)
+  def approv(self):
+    self.approve_comment = True
+    self.save()
 #  content_head = models.TextField(blank=True, null=True)
   class Meta:
     verbose_name_plural = "Posts"

@@ -42,6 +42,7 @@
 {% endif %}
 
 {# comments #}
+{% if post.approve_comment %}
 <p>Comments:</p>
 {% include "home/addcomment.html" %}
 
@@ -54,3 +55,6 @@
 {% empty %}
 <p>No comments yet :(</p>
 {% endfor %}
+{% else %}
+<p>Comment is not approved to this article.</p>
+{% endif %}

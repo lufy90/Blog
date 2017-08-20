@@ -1,12 +1,23 @@
-{# navigation #}
-<a href="{% url 'home:home' %}">Home</a>
-<a href="{% url 'home:posts' %}">Posts</a>
-<a href="/admin/">Admin</a>
-<!-- navigation end -->
-
+{% include "home/navigation.html" %}
 
 {# posts list and discrib #}
 <h2> Welcome to lufei's blog</h2>
+
+{# previous and next #}
+<p>
+{% if prev %}
+<a href="{% url 'home:home' prev %}">Previous</a>
+{% else %}
+<a>None</a>
+{% endif %}
+{% if next %}
+<a href="{% url 'home:home' next %}">Next</a>
+{% else %}
+<a>None</a>
+{% endif %}
+</p>
+
+
 {% if posts %}
 {% load static %}
 {% for post in posts %}
@@ -20,3 +31,19 @@ comment(s)
 {% else %}
 <p>No posts.</p>
 {% endif %}
+
+{# previous and next #}
+<p>
+{% if prev %}
+<a href="{% url 'home:home' prev %}">Previous</a>
+{% else %}
+<a>None</a>
+{% endif %}
+{% if next %}
+<a href="{% url 'home:home' next %}">Next</a>
+{% else %}
+<a>None</a>
+{% endif %}
+</p>
+
+{% include "home/footer.html" %}
