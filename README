@@ -17,3 +17,4 @@ visit from browser:
 http://192.168.10.10:8000
 
 This app can also deploy with nginx, need make some configuration about nginx.
+See http://lufy.org/posts/9/, maybe this help.
