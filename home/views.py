@@ -72,18 +72,47 @@ class CommentView(FormView):
   def get_post_pk(self):
     post_pk = self.kwargs['pk']
     return post_pk
+
 #  success_url = reverse_lazy('home:detail', kwargs={'id':get_post_id()})
+# http://blog.csdn.net/zh_m8/article/details/7975639
+# https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
 
   def form_valid(self, form):
     self.success_url = reverse('home:detail', kwargs={'pk':self.get_post_pk()})
-    
+    form.instance.comment_ip = self.request.META['REMOTE_ADDR'] 
     a = form.save(commit=False)
+#    a.comment_ip = self.get_comment_request().META['REMOTE_ADDR'] # 20170907 21:00
     a.post = Post.objects.get(pk=self.get_post_pk())
-    a.save()
-    
+    comment_rate_limit = 30
+    if self.comment_interval() > comment_rate_limit:
+      a.save()    
     return super(CommentView, self).form_valid(form)
+  def comment_interval(self):
+    ''' Return last comment interval '''
+    from django.utils.timezone import utc
+    from datetime import datetime
+    now = datetime.utcnow().replace(tzinfo=utc)
+    request_ip = self.request.META['REMOTE_ADDR']
+    try:
+      last_comment_created_on = Comment.objects.filter(comment_ip=request_ip).latest('created_on').created_on
+      interval = (now-last_comment_created_on).seconds
+      return interval
+    except Comment.DoesNotExist:
+      return 9999999
 
+from .models import About
+class AboutView(generic.TemplateView):
+  ''' About page view. '''
 
+  template_name = "home/about.html"
+  def get_context_data(self, **kwargs):
+    context = super(AboutView, self).get_context_data(**kwargs)
+    try:
+      context['title'] = About.objects.latest('created_on').title
+      context['content'] = About.objects.latest('created_on').content
+    except About.DoesNotExist:
+      pass
+    return context
 
 
 # Test view for purpose of debugging and learn.
@@ -103,6 +132,11 @@ class Test(generic.DetailView):
     except:
       context['prev'] = None
     return context
+
+from django.views import View
+class Test2(View):
+  def get(self, request):
+    return HttpResponse(request.META['REMOTE_ADDR'])
 #def home(request):
 #    template = loader.get_template('home/home.html')
 #    return HttpResponse(template.render(request))

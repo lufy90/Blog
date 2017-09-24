@@ -60,7 +60,11 @@ class Comment(models.Model):
   text = models.TextField()
   created_on = models.DateTimeField(auto_now=True)
   approve_comment = models.BooleanField(default=False)
+  comment_ip = models.GenericIPAddressField(null=True) # 20170907 21:30
 
+  def save(self, *args, **kwargs):
+    if self.post.approve_comment:
+      super(Comment, self).save(*args, **kwargs)
 
   def approv(self):
     self.approve_comment = True
@@ -74,6 +78,13 @@ class Comment(models.Model):
     ''' Make ordering with created_on, when get objects from object.all() '''
     ordering = ['-created_on']
 
+
+class About(models.Model):
+  ''' Define about page content. '''
+  title = models.CharField(max_length=200, null=True)
+  content = tinymce_models.HTMLField(blank=True, null=True)
+  created_on = models.DateTimeField(auto_now_add=True)
+  last_modified = models.DateTimeField(auto_now=True)
 # about slug: 
 # https://github.com/neithere/django-autoslug
 

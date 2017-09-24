@@ -51,7 +51,7 @@
 {# display comments #}
 {% for comment in post.comments.all %}
 <p>{{ comment.created_on }} by {{ comment.author }}</p>
-<p>{{ comment.text }}<br /><a href="#">Reply</a></p>
+<p>{{ comment.text }}<br /></p>
 {% empty %}
 <p>No comments yet :(</p>
 {% endfor %}

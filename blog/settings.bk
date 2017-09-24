@@ -24,7 +24,8 @@ SECRET_KEY = 'n*=w!@5c6*x#8v^j46c!v0$&^d0vo%t2it3hune3873&$i%of6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = [u'linux',u'192.168.88.150',]
+
+ALLOWED_HOSTS = [u'192.168.88.150', u'linux', u'127.0.0.1']
 
 
 # Application definition
@@ -48,7 +49,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'ratelimitbackend.middleware.RateLimitMiddleware',
 ]
 
 ROOT_URLCONF = 'blog.urls'
@@ -79,12 +79,13 @@ DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.sqlite3',
 #        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#    }
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
             'read_default_file': '/etc/my-blog.cnf',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'", }
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'" 
+        }
+
     }
 }
 
@@ -127,32 +128,3 @@ USE_TZ = True
 
 #ESATIC_ROOT = os.path.join(BASE_DIR, "static/")
 STATIC_URL = '/static/'
-
-#TINYMCE_DEFAULT_CONFIG = {
-#    'theme': "advanced",
-#    'theme_advanced_buttons4': "code",
-#    'theme_advanced_resizing': True,
-#}
-
-
-
-AUTHENTICATION_BACKENDS = (
-    'ratelimitbackend.backends.RateLimitModelBackend',
-)
-
-TINYMCE_DEFAULT_CONFIG = {
-    'plugins': "table,xhtmlxtras,paste,searchreplace",
-    'theme': "advanced",
-    "theme_advanced_buttons3_add" : "cite,abbr",
-    'cleanup_on_startup': True,
-    'custom_undo_redo_levels': 10,
-    'theme_advanced_buttons1': "save,newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect",
-    'theme_advanced_buttons2': "cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
-    'theme_advanced_buttons3': "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,emotions,iespell,media,advhr,|,print,|,ltr,rtl,|,fullscreen",
-    'theme_advanced_buttons4': "insertlayer,moveforward,movebackward,absolute,|,styleprops,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,template,pagebreak",
-    'extended_valid_elements': "iframe[src|title|width|height|allowfullscreen|frameborder|webkitAllowFullScreen|mozallowfullscreen|allowFullScreen]",
-    'theme_advanced_toolbar_location': "top",
-    'theme_advanced_toolbar_align': "left",
-    'theme_advanced_statusbar_location': "bottom",
-    'theme_advanced_resizing': True,
-}

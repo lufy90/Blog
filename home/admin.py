@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Post, Comment
+from .models import Category, Post, Comment, About
 from django.forms import Textarea
 #from django.db import models
 from tinymce import models as tinymce_models
@@ -25,4 +25,5 @@ class PostAdmin(admin.ModelAdmin):
 admin.site.register(Post, PostAdmin)
 
 admin.site.register(Comment)
+admin.site.register(About)
 # Register your models here.

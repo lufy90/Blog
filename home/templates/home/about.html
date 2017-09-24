@@ -1,0 +1,14 @@
+{% include "home/header.html" %}
+{% include "home/navigation.html" %}
+
+{# About page #}
+{% if title %}
+{% load static %}
+{% autoescape off %}
+<h3>{{ title }}</h3>
+<p>{{ content }}</p>
+{% endautoescape %}
+{% else %}
+<p>No such page yet.. </p>
+{% endif %}
+{% include "home/footer.html" %}
