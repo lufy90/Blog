@@ -1,0 +1,19 @@
+{# navigation #}
+{% include "home/header.html" %}
+{% include "home/navigation.html" %}
+<!-- navigation end -->
+
+{# posts list #}
+{% if posts_in_category %}
+{% load static %}
+  <ul>
+  {% for post in posts_in_category %}
+    <li><a href="{% url 'home:detail' post.id %}">{{ post.title }}</a></li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>No posts.</p>
+{% endif %}
+
+{% include "home/footer.html" %}
+<!-- posts list end -->

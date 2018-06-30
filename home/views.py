@@ -37,6 +37,19 @@ class PostsView(generic.ListView):
     """ Return all of the posts """
     return Post.objects.order_by('-last_modified')
 
+# Categories 
+# https://docs.djangoproject.com/en/1.11/topics/class-based-views/mixins/
+class Categories(generic.ListView):
+  pass
+
+# posts with specified categories.
+class CategorisedPostsView(generic.ListView):
+  template_name = 'home/category.html'
+  context_object_name = 'posts_in_category'
+  def get_queryset(self):
+    """ Return posts of specified category """
+    return Post.objects.filter(category_id=int(self.kwargs['category_id_0']))
+
 # display posts content.
 class DetailView(generic.DetailView):
   ''' display posts content '''
