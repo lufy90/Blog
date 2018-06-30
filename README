@@ -3,17 +3,31 @@ Only appropriate for linux OS
 Django version: 1.10.4 
 OS: Centos 7.0
 Python: 2.7 
+
 How to test with this app
-Clone the codes to your linux:
-# git clone git@github.com:lufy90/Blog
-Edit the setting.py about the host address, change the address to you address:
-# vim blog/setting.py
-ALLOWED_HOSTS = [u'192.168.10.10']
-Then you can run the server with in Blog directory:
-[user@host Blog]# ./manager runserver 0.0.0.0:8000
+1. Clone the codes to your linux:
+   # git clone git@github.com:lufy90/Blog
+2. Edit the setting.py about the host address, change the address to you address:
+   # vim blog/setting.py
+   ALLOWED_HOSTS = [u'192.168.10.10']
+3. Create /etc/my-blog.cnf
+   # vim /etc/my-blog.cnf
+  [client]
+   database = <dbname>
+   user = <mysqluser>
+   password = <password>
+   default-character-set = utf8 
+4. Then you can run the server with in Blog directory:
+   # ./manager runserver 0.0.0.0:8000
+   Or, if you have a proper uwsgi set and nginx, ./start.sh could deploy a 
+      django + uwsgi + nginx 
+   framework.
+5. Create super user
+   # ./manager.py createsuperuser
+6. Change user name
+   # changepassword 
 
 If you have the right firewall and network configuration, now the site can be 
 visit from browser:
 http://192.168.10.10:8000
 
-This app can also deploy with nginx, need make some configuration about nginx.
