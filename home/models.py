@@ -49,7 +49,7 @@ class Post(models.Model):
     ''' remove the html tags and get text head '''
     f = re.compile(r'</?\w+[^>]*>', re.S)
     html = self.content
-    head = f.sub('', html)[:200]
+    head = f.sub('', html)[:300]
     return head
 
 class Comment(models.Model):
@@ -61,6 +61,7 @@ class Comment(models.Model):
   created_on = models.DateTimeField(auto_now=True)
   approve_comment = models.BooleanField(default=False)
   comment_ip = models.GenericIPAddressField(null=True) # 20170907 21:30
+  list_display = ('text', 'post', 'created_on', 'comment_ip', 'author')
 
   def save(self, *args, **kwargs):
     if self.post.approve_comment:
