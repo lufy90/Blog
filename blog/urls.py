@@ -14,13 +14,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
-#from django.contrib import admin
-from ratelimitbackend  import admin
+try:
+  from ratelimitbackend  import admin
+except ImportError as e:
+  print(e)
+  print("WARNING: ratelimitbackend import failed, rate limint for admin site not supported!")
+  from django.contrib import admin
 
 
 urlpatterns = [
     url(r'^', include('home.urls')),
-#    url(r'^$', include('home.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^tinymce/', include('tinymce.urls')),
 ]
