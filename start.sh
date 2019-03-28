@@ -2,6 +2,8 @@
 # Make a schedule with 'crontab -e':
 # 10 2 * * * cd /home/blog/Blog/; ./start.sh
 
+mkdir ./log -p
+mkdir ./socket -p
 
 for p in `pgrep uwsgi`
 do
