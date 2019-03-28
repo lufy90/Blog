@@ -1,6 +1,6 @@
 #!/bin/bash
 # Make a schedule with 'crontab -e':
-# 10 2 * * * cd /home/sb/Blog/; ./start.sh
+# 10 2 * * * cd /home/blog/Blog/; ./start.sh
 
 
 for p in `pgrep uwsgi`
