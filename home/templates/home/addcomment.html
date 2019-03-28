@@ -1,4 +1,6 @@
-<form action="{% url 'home:addcomment' post.pk %}" method="post">
+{% load static %}
+<body onload="(generateCaptcha())">
+<form action="{% url 'home:addcomment' post.pk %}" method="post" onsubmit="return check()" >
 {% csrf_token %}
 {# {{ form.as_p }} #}
 <!-- <p>Text: <input type="text" name="text" /></p> -->
@@ -8,5 +10,36 @@
 {% else %}
 <p>Author:<input type="text" name="author" required /></p>
 {% endif %}
+
+<input type="text" id="captcha" disabled /><br />
+<input type="text" id="inputText" required /><br />
+<button onclick="generateCaptcha()">Refresh</button>
+
+
 <input type="submit" value="Submmit"  />
+
 </form>
+
+<script language="javascript">
+var captcha;
+ 
+function generateCaptcha() {
+    var a = Math.floor((Math.random() * 10));
+    var b = Math.floor((Math.random() * 10));
+    var c = Math.floor((Math.random() * 10));
+    var d = Math.floor((Math.random() * 10));
+    captcha=a.toString()+b.toString()+c.toString()+d.toString();
+    document.getElementById("captcha").value = captcha;
+}
+ 
+function check(){
+	var input=document.getElementById("inputText").value;
+	if(input==captcha){
+		return true;
+	}
+	else{
+                alert('false');
+	}
+}
+</script>
+</body>
