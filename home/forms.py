@@ -11,7 +11,7 @@ class CommentForm(forms.ModelForm):
 #      'text': _('Comments'),
     }
     help_texts = {
-#      'text': _('Can this works?'),
+#      'text': _('Can this work?'),
     }
   
 #  def as_p(self):
