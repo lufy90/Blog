@@ -1,43 +1,53 @@
+## ssgit
+
+#About this app
 This is a very simple dajngo blog app.
 Only appropriate for linux OS
 Django version: 1.10.4 
 OS: Centos 7.0
 Python: 2.7 
 Requires:
-pip install django-tinymce
+pip install django-tinymce uwsgi
 
 
-How to test with this app
+#Try this app:
 1. Clone the codes to your linux:
    # git clone git@github.com:lufy90/Blog
-2. Edit the setting.py about the host address, change the address to you
+2. Edit the setting.py about the host address, change ALLOWD_HOSTS to your
    address:
    # vim blog/setting.py
    ALLOWED_HOSTS = [u'192.168.10.10']
-3. Create /etc/my-blog.cnf
-   # vim /etc/my-blog.cnf
-   [client]
-   database = <dbname>
-   user = <mysqluser>
-   password = <password>
-   default-character-set = utf8 
-4. Then you can run the server with in Blog directory:
+3. Then you can run the server with in Blog directory:
    # ./manager runserver 0.0.0.0:8000
-   Or, if you have a proper uwsgi set and nginx, ./start.sh could deploy a 
-      django + uwsgi + nginx 
-   framework.
-5. Create super user
+4. Create super user
    # ./manager.py createsuperuser
-6. Change user password
+5. Change user password
    # changepassword 
+
+#Deploy this app as your real blog:
+The former trying steps are just for your preview of this app. If you're
+ willing to make it run as a real blog, then do the next steps:
+1. touch mysql config file:
+cat /etc/my-blog.cnf
+[client]
+database = <dbname>
+user = <dbuser>
+password = <dbpassword>
+default-character-set = utf8
+
+2. Edit blog/setting, set the DATABASES to be using db_mysql: 
+DATABASES = db_mysql
+
+3. Then run:
+./start.sh
 
 If you have the right firewall and network configuration, now the site can be 
 visited from browser:
 http://192.168.10.10:8000
 
-Sample for nginx setting:
+#Sample for nginx setting:
 --------------------------------------------------------------------------
-# blog.conf
+cat blog.conf
 upstream django {
     server unix:///home/Blog/socket/blog.sock;
 }
@@ -56,3 +66,11 @@ server {
 }
 --------------------------------------------------------------------------
 
+#Sample for mysql config:
+--------------------------------------------------------------------------
+[client]
+database = <dbname>
+user = <dbuser>
+password = <dbpassword>
+default-character-set = utf8
+--------------------------------------------------------------------------
