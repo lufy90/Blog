@@ -50,7 +50,7 @@ http://192.168.10.10:8000
 
 ## Sample for nginx setting:
 ```
-cat blog.conf
+# cat blog.conf
 upstream django {
     server unix:///home/Blog/socket/blog.sock;
 }
@@ -70,6 +70,7 @@ server {
 ```
 # Sample for mysql config:
 ```
+# cat /etc/blog.cnf
 [client]
 database = <dbname>
 user = <dbuser>
