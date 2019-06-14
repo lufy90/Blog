@@ -1,6 +1,6 @@
-## ssgit
+# ssblog
 
-#About this app
+## About this app
 This is a very simple dajngo blog app.
 Only appropriate for linux OS
 Django version: 1.10.4 
@@ -10,43 +10,46 @@ Requires:
 pip install django-tinymce uwsgi
 
 
-#Try this app:
+## Try this app:
 1. Clone the codes to your linux:
-   # git clone git@github.com:lufy90/Blog
-2. Edit the setting.py about the host address, change ALLOWD_HOSTS to your
-   address:
-   # vim blog/setting.py
-   ALLOWED_HOSTS = [u'192.168.10.10']
-3. Then you can run the server with in Blog directory:
-   # ./manager runserver 0.0.0.0:8000
+```# git clone git@github.com:lufy90/Blog```
+2. Edit the setting.py about the host address, change ```ALLOWD_HOSTS``` to your
+address:
+```
+# vim blog/setting.py
+ALLOWED_HOSTS = [u'192.168.10.10']
+```
+3. Then you can run the server within Blog directory:
+```# ./manager runserver 0.0.0.0:8000```
 4. Create super user
-   # ./manager.py createsuperuser
+```# ./manager.py createsuperuser ```
 5. Change user password
-   # changepassword 
+```# ./manager.py changepassword ```
 
-#Deploy this app as your real blog:
-The former trying steps are just for your preview of this app. If you're
+## Deploy this app as your real blog:
+The former trying steps are just for preview. If you're
  willing to make it run as a real blog, then do the next steps:
 1. touch mysql config file:
-cat /etc/my-blog.cnf
+```
+# cat /etc/my-blog.cnf
 [client]
 database = <dbname>
 user = <dbuser>
 password = <dbpassword>
 default-character-set = utf8
-
-2. Edit blog/setting, set the DATABASES to be using db_mysql: 
-DATABASES = db_mysql
+```
+2. Edit ```blog/setting```, set the ```DATABASES``` to be using ```db_mysql```: 
+```DATABASES = db_mysql```
 
 3. Then run:
-./start.sh
+```#./start.sh```
 
 If you have the right firewall and network configuration, now the site can be 
 visited from browser:
 http://192.168.10.10:8000
 
-#Sample for nginx setting:
---------------------------------------------------------------------------
+## Sample for nginx setting:
+```
 cat blog.conf
 upstream django {
     server unix:///home/Blog/socket/blog.sock;
@@ -64,13 +67,12 @@ server {
         include     /home/Blog/blog/uwsgi_params;
     }
 }
---------------------------------------------------------------------------
-
-#Sample for mysql config:
---------------------------------------------------------------------------
+```
+# Sample for mysql config:
+```
 [client]
 database = <dbname>
 user = <dbuser>
 password = <dbpassword>
 default-character-set = utf8
---------------------------------------------------------------------------
+```
