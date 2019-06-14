@@ -68,7 +68,7 @@ server {
     }
 }
 ```
-# Sample for mysql config:
+## Sample for mysql config:
 ```
 # cat /etc/blog.cnf
 [client]
