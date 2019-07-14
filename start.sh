@@ -2,6 +2,8 @@
 # Make a schedule with 'crontab -e':
 # 10 2 * * * cd /home/blog/Blog/; ./start.sh
 
+
+cd $(dirname $0)
 mkdir ./log -p
 mkdir ./socket -p
 
