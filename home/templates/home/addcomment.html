@@ -4,7 +4,7 @@
 {% csrf_token %}
 {# {{ form.as_p }} #}
 <!-- <p>Text: <input type="text" name="text" /></p> -->
-<textarea name="text" cols="50" rows="4" required></textarea>
+<textarea name="text" cols="50" rows="4" id="comment_content" required></textarea>
 {% if user.is_authenticated %}
 <p>Author:<input type="text" name="author" value="{{ user.username }}" required /></p>
 {% else %}
@@ -31,10 +31,17 @@ function generateCaptcha() {
     captcha=a.toString()+b.toString()+c.toString()+d.toString();
     document.getElementById("captcha").value = captcha;
 }
- 
+var denykw=["http://", "https://"] 
 function check(){
 	var input=document.getElementById("inputText").value;
-	if(input==captcha){
+	var text=document.getElementById("comment_content").value;
+	for (var i=0; i<denykw.length; i++) {
+		if (text.search(denykw[i]) != -1){
+			alert("Key word not allowed: "+denykw[i]);
+			return false;
+		}
+	}
+	if (input==captcha) {
 		return true;
 	}
 	else{
