@@ -23,7 +23,6 @@ ALLOWED_HOSTS = [u'192.168.10.10']
 ```./manage.py migrate```
    Some times this only creates the application admin tables, tables of `home` will not be created. This could be solved by:
 ```./manage.py makemigrations
-
 ./manage.py migrate```
    is need.
 4. Then you can run the server within Blog directory:
