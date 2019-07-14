@@ -19,12 +19,15 @@ address:
 # vim blog/setting.py
 ALLOWED_HOSTS = [u'192.168.10.10']
 ```
-3. Create database, default make a sqlite3 database at .
-```./manage.py migrate```
+3. Create database, default make a sqlite3 database at app root dir.
+```
+./manage.py migrate
+```
    Some times this only creates the application admin tables, tables of `home` will not be created. This could be solved by:
-```./manage.py makemigrations
-./manage.py migrate```
-   is need.
+```
+./manage.py makemigrations
+./manage.py migrate
+```
 4. Then you can run the server within Blog directory:
 ```# ./manager runserver 0.0.0.0:8000```
 5. Create super user
