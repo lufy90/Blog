@@ -86,3 +86,10 @@ user = <dbuser>
 password = <dbpassword>
 default-character-set = utf8
 ```
+
+## Note
+20190727
+Do more limitations on making comments
+1. Text length
+2. Key words filter, with customised validation in /home/models.py
+

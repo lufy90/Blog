@@ -51,13 +51,23 @@ class Post(models.Model):
     html = self.content
     head = f.sub('', html)[:300]
     return head
+from django.core.exceptions import ValidationError
+def comment_text_validate(value):
+  unallowed_strings = ['http://', 'https://',]
+  comment_max_length = 500
+
+  for v in unallowed_strings:
+    if v in value:
+      raise ValidationError(
+        "bad comment."
+        )
 
 class Comment(models.Model):
   ''' define post comments '''
   post = models.ForeignKey(Post, related_name='comments', 
     on_delete=models.CASCADE)
   author = models.CharField(max_length=200)
-  text = models.TextField()
+  text = models.TextField(max_length=500,validators=[comment_text_validate])
   created_on = models.DateTimeField(auto_now=True)
   approve_comment = models.BooleanField(default=False)
   comment_ip = models.GenericIPAddressField(null=True) # 20170907 21:30
