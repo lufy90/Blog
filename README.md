@@ -7,7 +7,7 @@ Django version: 1.10.4
 OS: Centos 7.0
 Python: 2.7 
 Requires:
-pip install django-tinymce uwsgi
+pip install django-tinymce uwsgi pymysql django-ratelimit-backend 
 
 
 ## Try this app:
@@ -93,3 +93,10 @@ Do more limitations on making comments
 1. Text length
 2. Key words filter, with customised validation in /home/models.py
 
+20191008
+Change model.py for adapting python3.6 and django 2.2.6, on centos 8
+Change pymsyql to mysqlclient, for resolving the following issue:
+ISSUE: django.core.exceptions.ImproperlyConfigured: mysqlclient 1.3.13 or newer is required; you have 0.9.3.
+Changed files on host lufy.org:
+1. blog/__init__.py       -- about pymysql
+2. home/models.py         -- about foreign keys

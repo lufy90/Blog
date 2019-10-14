@@ -16,6 +16,8 @@ class Category(models.Model):
   def __unicode__(self):
     return self.name
 
+  def __str__(self):
+    return self.name
 
 from django.template.defaultfilters import slugify
 import re
@@ -24,12 +26,12 @@ class Post(models.Model):
   title = models.CharField(max_length=200, null=True)
   slug = models.SlugField(max_length=255, blank=True, null=True)
   category = models.ForeignKey(Category, related_name='post_category', 
-    blank=True, null=True)
+    blank=True, null=True, on_delete=models.CASCADE)
 #  content = models.TextField(blank=True, null=True)
   content = tinymce_models.HTMLField(blank=True, null=True)
   created_on = models.DateTimeField(auto_now_add=True)
   last_modified = models.DateTimeField(auto_now=True)
-  author = models.ForeignKey(User, blank=True, null=True)
+  author = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
   approve_comment = models.BooleanField(default=False)
   def approv(self):
     self.approve_comment = True
