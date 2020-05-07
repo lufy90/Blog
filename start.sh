@@ -96,7 +96,7 @@ send() {
     backup
     local remail=$1
     local msg="backup for $server_name."
-    echo $msg | mail -s "Today's Backup -- from lufy.org" -a \
+    echo $msg | mail -s "Today's Backup -- from $server_name" -a \
          /tmp/${db_name}-${DATE}.sql $remail
     ## unfinished ..
 }
