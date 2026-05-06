@@ -14,6 +14,12 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 from .models import Entry, Category, FileModel, Comment
 from .forms import EntryForm, CommentForm, ReplyForm
+from .utils import get_client_ip
+from .meaningless_comment_limits import (
+    purge_old_meaningless_attempts,
+    is_meaningless_rate_limited,
+    log_meaningless_attempt,
+)
 from settings.models import SiteSettings
 from django.http import HttpResponse, JsonResponse
 
@@ -110,6 +116,9 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         if form.instance.visibility == 'public' and not form.instance.published_on:
             form.instance.published_on = timezone.now()
+        ip = get_client_ip(self.request)
+        form.instance.creation_ip = ip
+        form.instance.last_edit_ip = ip
         response = super().form_valid(form)
         # Handle file uploads
         files = self.request.FILES.getlist('files')
@@ -142,7 +151,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
                 self.object.files.add(*pending_files)
             self.request.session.pop('pending_editor_file_ids', None)
         
-        messages.success(self.request, 'Post created successfully!')
+        messages.success(self.request, 'Post created successfully!', extra_tags='update-tip')
         # Clear recently uploaded files from session
         if 'recently_uploaded_files' in self.request.session:
             del self.request.session['recently_uploaded_files']
@@ -167,6 +176,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def form_valid(self, form):
         if form.instance.visibility == 'public' and not form.instance.published_on:
             form.instance.published_on = timezone.now()
+        form.instance.last_edit_ip = get_client_ip(self.request)
         response = super().form_valid(form)
         # Handle file uploads
         files = self.request.FILES.getlist('files')
@@ -178,7 +188,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                     original_filename=uploaded_file.name
                 )
                 self.object.files.add(file_model)
-        messages.success(self.request, 'Post updated successfully!')
+        messages.success(self.request, 'Post updated successfully!', extra_tags='update-tip')
         return response
     
     def test_func(self):
@@ -497,37 +507,52 @@ def add_comment(request, post_id):
     """Add a comment to a post"""
     # Check if comments are enabled
     if not SiteSettings.get_value('enable_comments', True):
-        messages.error(request, 'Comments are currently disabled.')
+        messages.error(request, 'Comments are currently disabled.', extra_tags='update-error-tip')
         return redirect('entries:post_list')
     
     post = get_object_or_404(Entry, pk=post_id)
     
     # Allow comments on public posts or private posts by the author
     if post.visibility != 'public' and request.user != post.author:
-        messages.error(request, 'You cannot comment on private posts.')
+        messages.error(request, 'You cannot comment on private posts.', extra_tags='update-error-tip')
         return redirect('entries:post_list')
     
     # Check if anonymous comments are allowed
     if not request.user.is_authenticated and not SiteSettings.get_value('allow_anonymous_comments', True):
-        messages.error(request, 'Anonymous comments are not allowed. Please log in to comment.')
+        messages.error(request, 'Anonymous comments are not allowed. Please log in to comment.', extra_tags='update-error-tip')
         return redirect('entries:post_detail', slug=post.slug)
     
     form = CommentForm(request.POST, user=request.user)
     if form.is_valid():
         comment = form.save(commit=False)
         comment.entry = post
-        
-        # Set approval status based on settings
-        if SiteSettings.get_value('require_comment_approval', False):
-            comment.is_approved = False
-            messages.success(request, 'Your comment has been submitted and is awaiting approval.')
+        if SiteSettings.comment_content_blocked_by_keywords(comment.content or ''):
+            messages.error(request, 'Your comment contains blocked words and was not posted.', extra_tags='update-error-tip')
+        elif SiteSettings.comment_content_is_meaningless(comment.content or ''):
+            ip = get_client_ip(request)
+            purge_old_meaningless_attempts()
+            if is_meaningless_rate_limited(ip):
+                messages.error(
+                    request,
+                    'Too many low-quality comment attempts from your network. Please wait before trying again.',
+                    extra_tags='update-error-tip',
+                )
+            else:
+                log_meaningless_attempt(post, comment.content, ip)
+                messages.error(request, 'Your comment looks meaningless or like random text and was not posted.', extra_tags='update-error-tip')
         else:
-            comment.is_approved = True
-            messages.success(request, 'Your comment has been added successfully!')
-        
-        comment.save()
+            # Set approval status based on settings
+            if SiteSettings.get_value('require_comment_approval', False):
+                comment.is_approved = False
+                messages.success(request, 'Your comment has been submitted and is awaiting approval.', extra_tags='update-tip')
+            else:
+                comment.is_approved = True
+                messages.success(request, 'Your comment has been added successfully!', extra_tags='update-tip')
+            
+            comment.ip_address = get_client_ip(request)
+            comment.save()
     else:
-        messages.error(request, 'There was an error with your comment. Please try again.')
+        messages.error(request, 'There was an error with your comment. Please try again.', extra_tags='update-error-tip')
     
     # Redirect to appropriate post detail page
     if post.visibility == 'public':
@@ -541,11 +566,11 @@ def add_reply(request, comment_id):
     """Add a reply to a comment"""
     # Check if comments and replies are enabled
     if not SiteSettings.get_value('enable_comments', True):
-        messages.error(request, 'Comments are currently disabled.')
+        messages.error(request, 'Comments are currently disabled.', extra_tags='update-error-tip')
         return redirect('entries:post_list')
     
     if not SiteSettings.get_value('enable_comment_replies', True):
-        messages.error(request, 'Comment replies are currently disabled.')
+        messages.error(request, 'Comment replies are currently disabled.', extra_tags='update-error-tip')
         return redirect('entries:post_list')
     
     parent_comment = get_object_or_404(Comment, pk=comment_id, is_approved=True)
@@ -553,12 +578,12 @@ def add_reply(request, comment_id):
     
     # Allow replies on public posts or private posts by the author
     if post.visibility != 'public' and request.user != post.author:
-        messages.error(request, 'You cannot reply to comments on private posts.')
+        messages.error(request, 'You cannot reply to comments on private posts.', extra_tags='update-error-tip')
         return redirect('entries:post_list')
     
     # Check if anonymous replies are allowed
     if not request.user.is_authenticated and not SiteSettings.get_value('allow_anonymous_comments', True):
-        messages.error(request, 'Anonymous replies are not allowed. Please log in to reply.')
+        messages.error(request, 'Anonymous replies are not allowed. Please log in to reply.', extra_tags='update-error-tip')
         if post.visibility == 'public':
             return redirect('entries:post_detail', slug=post.slug)
         else:
@@ -568,18 +593,33 @@ def add_reply(request, comment_id):
     if form.is_valid():
         reply = form.save(commit=False)
         reply.entry = post
-        
-        # Set approval status based on settings
-        if SiteSettings.get_value('require_comment_approval', False):
-            reply.is_approved = False
-            messages.success(request, 'Your reply has been submitted and is awaiting approval.')
+        if SiteSettings.comment_content_blocked_by_keywords(reply.content or ''):
+            messages.error(request, 'Your reply contains blocked words and was not posted.', extra_tags='update-error-tip')
+        elif SiteSettings.comment_content_is_meaningless(reply.content or ''):
+            ip = get_client_ip(request)
+            purge_old_meaningless_attempts()
+            if is_meaningless_rate_limited(ip):
+                messages.error(
+                    request,
+                    'Too many low-quality reply attempts from your network. Please wait before trying again.',
+                    extra_tags='update-error-tip',
+                )
+            else:
+                log_meaningless_attempt(post, reply.content, ip, parent_comment=parent_comment)
+                messages.error(request, 'Your reply looks meaningless or like random text and was not posted.', extra_tags='update-error-tip')
         else:
-            reply.is_approved = True
-            messages.success(request, 'Your reply has been added successfully!')
-        
-        reply.save()
+            # Set approval status based on settings
+            if SiteSettings.get_value('require_comment_approval', False):
+                reply.is_approved = False
+                messages.success(request, 'Your reply has been submitted and is awaiting approval.', extra_tags='update-tip')
+            else:
+                reply.is_approved = True
+                messages.success(request, 'Your reply has been added successfully!', extra_tags='update-tip')
+            
+            reply.ip_address = get_client_ip(request)
+            reply.save()
     else:
-        messages.error(request, 'There was an error with your reply. Please try again.')
+        messages.error(request, 'There was an error with your reply. Please try again.', extra_tags='update-error-tip')
     
     # Redirect to appropriate post detail page
     if post.visibility == 'public':
@@ -602,7 +642,7 @@ def delete_comment(request, comment_id):
     )
     
     if not can_delete:
-        messages.error(request, 'You do not have permission to delete this comment.')
+        messages.error(request, 'You do not have permission to delete this comment.', extra_tags='update-error-tip')
         if post.visibility == 'public':
             return redirect('entries:post_detail', slug=post.slug)
         else:
@@ -610,7 +650,7 @@ def delete_comment(request, comment_id):
     
     if request.method == 'POST':
         comment.delete()
-        messages.success(request, 'Comment deleted successfully.')
+        messages.success(request, 'Comment deleted successfully.', extra_tags='update-tip')
         if post.visibility == 'public':
             return redirect('entries:post_detail', slug=post.slug)
         else:
@@ -631,7 +671,7 @@ def edit_comment(request, comment_id):
     
     # Only comment author can edit
     if request.user != comment.author:
-        messages.error(request, 'You can only edit your own comments.')
+        messages.error(request, 'You can only edit your own comments.', extra_tags='update-error-tip')
         if post.visibility == 'public':
             return redirect('entries:post_detail', slug=post.slug)
         else:
@@ -641,7 +681,7 @@ def edit_comment(request, comment_id):
         form = CommentForm(request.POST, instance=comment, user=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Comment updated successfully.')
+            messages.success(request, 'Comment updated successfully.', extra_tags='update-tip')
             if post.visibility == 'public':
                 return redirect('entries:post_detail', slug=post.slug)
             else:

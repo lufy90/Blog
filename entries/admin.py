@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Entry, Category, FileModel, Comment
+from .models import Entry, Category, FileModel, Comment, MeaninglessCommentAttempt
+from .utils import get_client_ip
 
 
 @admin.register(Category)
@@ -11,11 +12,11 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Entry)
 class EntryAdmin(admin.ModelAdmin):
-    list_display = ['title', 'author', 'visibility', 'view_count', 'category', 'priority', 'is_pinned', 'created_on']
+    list_display = ['title', 'author', 'visibility', 'view_count', 'category', 'priority', 'is_pinned', 'last_edit_ip', 'created_on']
     list_filter = ['visibility', 'category', 'priority', 'is_pinned', 'mood', 'created_on', 'author']
     search_fields = ['title', 'content']
     prepopulated_fields = {'slug': ('title',)}
-    readonly_fields = ['created_on', 'updated_on', 'published_on', 'view_count']
+    readonly_fields = ['created_on', 'updated_on', 'published_on', 'view_count', 'creation_ip', 'last_edit_ip']
     
     fieldsets = (
         ('Content', {
@@ -36,6 +37,10 @@ class EntryAdmin(admin.ModelAdmin):
             'fields': ('view_count',),
             'classes': ('collapse',)
         }),
+        ('Client IP', {
+            'fields': ('creation_ip', 'last_edit_ip'),
+            'classes': ('collapse',)
+        }),
         ('Timestamps', {
             'fields': ('created_on', 'updated_on', 'published_on'),
             'classes': ('collapse',)
@@ -43,6 +48,15 @@ class EntryAdmin(admin.ModelAdmin):
     )
     
     filter_horizontal = ['files']
+
+    def save_model(self, request, obj, form, change):
+        ip = get_client_ip(request)
+        if change:
+            obj.last_edit_ip = ip
+        else:
+            obj.creation_ip = ip
+            obj.last_edit_ip = ip
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(FileModel)
@@ -70,10 +84,10 @@ class FileModelAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['get_author_display', 'entry', 'is_approved', 'created_on', 'is_reply']
+    list_display = ['get_author_display', 'entry', 'is_approved', 'ip_address', 'created_on', 'is_reply']
     list_filter = ['is_approved', 'created_on', 'parent', 'entry__author']
     search_fields = ['content', 'author_name', 'entry__title']
-    readonly_fields = ['created_on', 'updated_on']
+    readonly_fields = ['created_on', 'updated_on', 'ip_address']
     list_editable = ['is_approved']
     
     fieldsets = (
@@ -84,13 +98,18 @@ class CommentAdmin(admin.ModelAdmin):
             'fields': ('author', 'author_name', 'author_email')
         }),
         ('Comment Details', {
-            'fields': ('parent', 'is_approved')
+            'fields': ('parent', 'is_approved', 'ip_address')
         }),
         ('Timestamps', {
             'fields': ('created_on', 'updated_on'),
             'classes': ('collapse',)
         }),
     )
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.ip_address = get_client_ip(request)
+        super().save_model(request, obj, form, change)
     
     def get_author_display(self, obj):
         return obj.get_author_display()
@@ -100,3 +119,14 @@ class CommentAdmin(admin.ModelAdmin):
         return obj.is_reply
     is_reply.boolean = True
     is_reply.short_description = 'Is Reply'
+
+
+@admin.register(MeaninglessCommentAttempt)
+class MeaninglessCommentAttemptAdmin(admin.ModelAdmin):
+    list_display = ['id', 'entry', 'ip_address', 'parent_comment', 'created_on']
+    list_filter = ['created_on']
+    search_fields = ['content', 'ip_address', 'entry__title']
+    readonly_fields = ['entry', 'parent_comment', 'content', 'ip_address', 'created_on']
+
+    def has_add_permission(self, request):
+        return False

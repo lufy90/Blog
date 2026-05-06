@@ -389,6 +389,12 @@
                                         Enable comment replies
                                     </label>
                                 </div>
+                                <div class="form-check mb-2">
+                                    {{ form.block_meaningless_comments }}
+                                    <label class="form-check-label" for="{{ form.block_meaningless_comments.id_for_label }}">
+                                        Block meaningless comments (random keys, repetition, no letters)
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-check mb-2">
@@ -404,6 +410,42 @@
                                         <div class="text-danger small">{{ form.max_comment_length.errors.0 }}</div>
                                     {% endif %}
                                     <div class="form-text">Maximum number of characters allowed in comments</div>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.comment_sensitive_keywords.id_for_label }}" class="form-label">Comment sensitive keywords</label>
+                                {{ form.comment_sensitive_keywords }}
+                                {% if form.comment_sensitive_keywords.errors %}
+                                    <div class="text-danger small">{{ form.comment_sensitive_keywords.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Comments or replies containing any of these (substring match, case-insensitive) are rejected. One phrase per line, or separate with commas.</div>
+                            </div>
+                            <div class="col-12">
+                                <h6 class="text-muted mb-2">Meaningless comment log and rate limit</h6>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.meaningless_rate_limit_max_attempts.id_for_label }}" class="form-label">Max meaningless attempts per IP</label>
+                                        {{ form.meaningless_rate_limit_max_attempts }}
+                                        {% if form.meaningless_rate_limit_max_attempts.errors %}
+                                            <div class="text-danger small">{{ form.meaningless_rate_limit_max_attempts.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Within the time window below; further meaningless posts are blocked without logging.</div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.meaningless_rate_limit_window_minutes.id_for_label }}" class="form-label">Rate limit window (minutes)</label>
+                                        {{ form.meaningless_rate_limit_window_minutes }}
+                                        {% if form.meaningless_rate_limit_window_minutes.errors %}
+                                            <div class="text-danger small">{{ form.meaningless_rate_limit_window_minutes.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.meaningless_attempt_retention_days.id_for_label }}" class="form-label">Log retention (days)</label>
+                                        {{ form.meaningless_attempt_retention_days }}
+                                        {% if form.meaningless_attempt_retention_days.errors %}
+                                            <div class="text-danger small">{{ form.meaningless_attempt_retention_days.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Older meaningless attempt rows are deleted automatically and via cleanup command.</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -458,7 +500,12 @@ document.addEventListener('DOMContentLoaded', function() {
         '{{ form.allow_anonymous_comments.id_for_label }}',
         '{{ form.require_comment_approval.id_for_label }}',
         '{{ form.enable_comment_replies.id_for_label }}',
-        '{{ form.max_comment_length.id_for_label }}'
+        '{{ form.block_meaningless_comments.id_for_label }}',
+        '{{ form.max_comment_length.id_for_label }}',
+        '{{ form.comment_sensitive_keywords.id_for_label }}',
+        '{{ form.meaningless_rate_limit_max_attempts.id_for_label }}',
+        '{{ form.meaningless_rate_limit_window_minutes.id_for_label }}',
+        '{{ form.meaningless_attempt_retention_days.id_for_label }}'
     ];
     
     commentFields.forEach(fieldId => {

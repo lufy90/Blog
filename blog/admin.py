@@ -5,10 +5,16 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 
 # Import your models
-from settings.models import SiteSettings
-from settings.admin import SiteSettingsAdmin
-from entries.models import Entry, Category, FileModel
-from entries.admin import EntryAdmin, CategoryAdmin, FileModelAdmin
+from settings.models import SiteSettings, BlockedIPAddress
+from settings.admin import SiteSettingsAdmin, BlockedIPAddressAdmin
+from entries.models import Entry, Category, FileModel, Comment, MeaninglessCommentAttempt
+from entries.admin import (
+    EntryAdmin,
+    CategoryAdmin,
+    FileModelAdmin,
+    CommentAdmin,
+    MeaninglessCommentAttemptAdmin,
+)
 
 class BlogAdminSite(AdminSite):
     """Custom admin site for the blog"""
@@ -37,6 +43,9 @@ admin_site.register(Group, GroupAdmin)
 
 # Register your models with the custom admin site
 admin_site.register(SiteSettings, SiteSettingsAdmin)
+admin_site.register(BlockedIPAddress, BlockedIPAddressAdmin)
 admin_site.register(Entry, EntryAdmin)
 admin_site.register(Category, CategoryAdmin)
-admin_site.register(FileModel, FileModelAdmin) 
+admin_site.register(FileModel, FileModelAdmin)
+admin_site.register(Comment, CommentAdmin)
+admin_site.register(MeaninglessCommentAttempt, MeaninglessCommentAttemptAdmin)

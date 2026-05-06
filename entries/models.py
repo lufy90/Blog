@@ -148,6 +148,8 @@ class Entry(models.Model):
     
     # Statistics
     view_count = models.PositiveIntegerField(default=0, help_text="Number of views for public posts")
+    creation_ip = models.CharField(max_length=45, blank=True)
+    last_edit_ip = models.CharField(max_length=45, blank=True)
     
     # Common fields
     created_on = models.DateTimeField(auto_now_add=True)
@@ -276,6 +278,7 @@ class Comment(models.Model):
     is_approved = models.BooleanField(default=True)  # Set to False for moderation
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+    ip_address = models.CharField(max_length=45, blank=True)
     
     class Meta:
         ordering = ['-created_on']
@@ -306,3 +309,30 @@ class Comment(models.Model):
     def is_anonymous(self):
         """Check if this is an anonymous comment"""
         return self.author is None
+
+
+class MeaninglessCommentAttempt(models.Model):
+    """Logged rejected meaningless comment text (not a public Comment) for IP rate limiting."""
+
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE, related_name='meaningless_attempts')
+    parent_comment = models.ForeignKey(
+        Comment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='meaningless_reply_attempts',
+        help_text='Set when the attempt was a reply to this comment.',
+    )
+    content = models.TextField()
+    ip_address = models.CharField(max_length=45, blank=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_on']
+        indexes = [
+            models.Index(fields=['ip_address', 'created_on']),
+            models.Index(fields=['created_on']),
+        ]
+
+    def __str__(self):
+        return f'Meaningless attempt from {self.ip_address or "unknown"} on {self.entry_id}'

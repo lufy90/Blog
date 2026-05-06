@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SiteSettings
+from .models import SiteSettings, BlockedIPAddress
 
 
 @admin.register(SiteSettings)
@@ -34,8 +34,19 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ('Comment Settings', {
             'fields': (
                 'enable_comments', 'allow_anonymous_comments', 'require_comment_approval',
-                'enable_comment_replies', 'max_comment_length'
+                'enable_comment_replies', 'max_comment_length', 'comment_sensitive_keywords',
+                'block_meaningless_comments',
+                'meaningless_rate_limit_max_attempts',
+                'meaningless_rate_limit_window_minutes',
+                'meaningless_attempt_retention_days',
             ),
             'description': 'Configure comment functionality and moderation settings.'
         }),
     )
+
+
+@admin.register(BlockedIPAddress)
+class BlockedIPAddressAdmin(admin.ModelAdmin):
+    list_display = ['ip_address', 'note', 'created_on']
+    search_fields = ['ip_address', 'note']
+    ordering = ['-created_on']
