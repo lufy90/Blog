@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from django.contrib.messages import constants as message_constants
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,11 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'entries',
-    'settings',
+    'settings.apps.SettingsConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'settings.middleware.IPBlacklistMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -139,6 +142,15 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Map Django message levels to Bootstrap 5 alert-* suffixes (used in base.html).
+MESSAGE_TAGS = {
+    message_constants.DEBUG: 'secondary',
+    message_constants.INFO: 'info',
+    message_constants.SUCCESS: 'success',
+    message_constants.WARNING: 'warning',
+    message_constants.ERROR: 'danger',
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

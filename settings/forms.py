@@ -20,7 +20,11 @@ class SiteSettingsForm(forms.ModelForm):
             'enable_search', 'enable_categories',
             'enable_mood_tracking', 'enable_priority_tracking', 'enable_pinning',
             'enable_comments', 'allow_anonymous_comments', 'require_comment_approval',
-            'enable_comment_replies', 'max_comment_length'
+            'enable_comment_replies', 'max_comment_length', 'comment_sensitive_keywords',
+            'block_meaningless_comments',
+            'meaningless_rate_limit_max_attempts',
+            'meaningless_rate_limit_window_minutes',
+            'meaningless_attempt_retention_days',
         ]
         widgets = {
             'site_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -48,6 +52,10 @@ class SiteSettingsForm(forms.ModelForm):
             'image_compression_limit_mb': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.1'}),
             'image_compression_quality': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '100'}),
             'max_comment_length': forms.NumberInput(attrs={'class': 'form-control'}),
+            'comment_sensitive_keywords': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'meaningless_rate_limit_max_attempts': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'meaningless_rate_limit_window_minutes': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'meaningless_attempt_retention_days': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -57,7 +65,8 @@ class SiteSettingsForm(forms.ModelForm):
                           'show_mood_badges', 'show_priority_badges', 'show_attached_files_public', 'enable_search', 
                           'enable_categories', 'enable_file_uploads', 'enable_image_compression', 'enable_mood_tracking', 
                           'enable_priority_tracking', 'enable_pinning', 'enable_comments',
-                          'allow_anonymous_comments', 'require_comment_approval', 'enable_comment_replies']:
+                          'allow_anonymous_comments', 'require_comment_approval', 'enable_comment_replies',
+                          'block_meaningless_comments']:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs.update({'class': 'form-check-input'})
     

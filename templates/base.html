@@ -204,6 +204,12 @@
             color: #0f5132;
             font-weight: 600;
         }
+        .update-error-tip-alert {
+            border-left: 4px solid #dc3545;
+            background-color: #fcebec;
+            color: #842029;
+            font-weight: 600;
+        }
         
         /* Sticky footer */
         main {
@@ -351,13 +357,17 @@
         <main class="container mt-4">
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert {% if 'updated' in message|lower or 'pinned' in message|lower or 'unpinned' in message|lower or 'made private' in message|lower or 'made public' in message|lower %}alert-success update-tip-alert{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                        {% if 'updated' in message|lower or 'pinned' in message|lower or 'unpinned' in message|lower or 'made private' in message|lower or 'made public' in message|lower %}
+                    {% with msg_lower=message|lower tags_lower=message.tags|lower %}
+                    <div class="alert {% if 'update-error-tip' in tags_lower %}alert-danger update-error-tip-alert{% elif 'update-tip' in tags_lower or 'updated' in msg_lower or 'pinned' in msg_lower or 'unpinned' in msg_lower or 'made private' in msg_lower or 'made public' in msg_lower %}alert-success update-tip-alert{% else %}alert-{{ message.level_tag }}{% endif %} alert-dismissible fade show" role="alert">
+                        {% if 'update-error-tip' in tags_lower %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elif 'update-tip' in tags_lower or 'updated' in msg_lower or 'pinned' in msg_lower or 'unpinned' in msg_lower or 'made private' in msg_lower or 'made public' in msg_lower %}
                             <i class="fas fa-check-circle me-2"></i>
                         {% endif %}
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
+                    {% endwith %}
                 {% endfor %}
             {% endif %}
 

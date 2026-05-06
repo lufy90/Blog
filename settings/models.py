@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 
 
 class SiteSettings(models.Model):
@@ -91,6 +92,29 @@ class SiteSettings(models.Model):
     require_comment_approval = models.BooleanField(default=False, help_text="Require admin approval for new comments")
     enable_comment_replies = models.BooleanField(default=True, help_text="Allow users to reply to comments")
     max_comment_length = models.PositiveIntegerField(default=1000, help_text="Maximum length for comments (characters)")
+    comment_sensitive_keywords = models.TextField(
+        blank=True,
+        help_text="Comments containing any of these words or phrases are rejected. One per line, or comma-separated.",
+    )
+    block_meaningless_comments = models.BooleanField(
+        default=False,
+        help_text="Reject comments that look like random keys, extreme repetition, or strings with almost no letters.",
+    )
+    meaningless_rate_limit_max_attempts = models.PositiveIntegerField(
+        default=10,
+        validators=[MinValueValidator(1)],
+        help_text="Max meaningless comment attempts logged per IP within the window before further meaningless posts are blocked.",
+    )
+    meaningless_rate_limit_window_minutes = models.PositiveIntegerField(
+        default=60,
+        validators=[MinValueValidator(1)],
+        help_text="Sliding window (minutes) for counting meaningless attempts per IP.",
+    )
+    meaningless_attempt_retention_days = models.PositiveIntegerField(
+        default=30,
+        validators=[MinValueValidator(1)],
+        help_text="Delete stored meaningless attempt logs older than this many days (also runs when a meaningless comment is checked).",
+    )
     
     # Display Settings
     show_attached_files_public = models.BooleanField(default=True, help_text="Show attached files section on public post detail pages")
@@ -142,3 +166,66 @@ class SiteSettings(models.Model):
         if settings:
             return getattr(settings, key, default)
         return default
+
+    @classmethod
+    def get_comment_sensitive_keyword_list(cls):
+        """Return non-empty keyword strings from site settings (case matching applied later)."""
+        settings = cls.get_settings()
+        if not settings:
+            return []
+        raw = getattr(settings, 'comment_sensitive_keywords', '') or ''
+        keywords = []
+        normalized = raw.replace('\r\n', '\n').replace('\r', '\n')
+        for line in normalized.split('\n'):
+            for piece in line.split(','):
+                w = piece.strip()
+                if w:
+                    keywords.append(w)
+        return keywords
+
+    @classmethod
+    def comment_content_blocked_by_keywords(cls, content):
+        """True if content contains any configured sensitive substring (case-insensitive)."""
+        if content is None:
+            content = ''
+        keywords = cls.get_comment_sensitive_keyword_list()
+        if not keywords:
+            return False
+        lowered = content.lower()
+        for kw in keywords:
+            if kw.lower() in lowered:
+                return True
+        return False
+
+    @classmethod
+    def comment_content_is_meaningless(cls, content):
+        """True when meaningless-comment blocking is enabled and heuristics match."""
+        if not cls.get_value('block_meaningless_comments', False):
+            return False
+        from settings.comment_meaningless import is_meaningless_comment_text
+        return is_meaningless_comment_text(content)
+
+
+class BlockedIPAddress(models.Model):
+    """Exact client IP matches are rejected for all site requests (see IPBlacklistMiddleware)."""
+
+    ip_address = models.CharField(max_length=45, unique=True)
+    note = models.CharField(max_length=200, blank=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_on']
+        verbose_name = 'Blocked IP address'
+        verbose_name_plural = 'Blocked IP addresses'
+
+    def __str__(self):
+        return self.ip_address
+
+    def clean(self):
+        super().clean()
+        if not (self.ip_address or '').strip():
+            raise ValidationError({'ip_address': 'IP address cannot be empty.'})
+
+    def save(self, *args, **kwargs):
+        self.ip_address = (self.ip_address or '').strip()[:45]
+        super().save(*args, **kwargs)
