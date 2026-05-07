@@ -20,7 +20,7 @@ class SiteSettingsForm(forms.ModelForm):
             'enable_search', 'enable_categories',
             'enable_mood_tracking', 'enable_priority_tracking', 'enable_pinning',
             'enable_comments', 'allow_anonymous_comments', 'require_comment_approval',
-            'enable_comment_replies', 'max_comment_length', 'comment_sensitive_keywords',
+            'enable_comment_replies', 'require_anonymous_comment_captcha', 'max_comment_length', 'comment_sensitive_keywords',
             'block_meaningless_comments',
             'meaningless_rate_limit_max_attempts',
             'meaningless_rate_limit_window_minutes',
@@ -66,7 +66,7 @@ class SiteSettingsForm(forms.ModelForm):
                           'enable_categories', 'enable_file_uploads', 'enable_image_compression', 'enable_mood_tracking', 
                           'enable_priority_tracking', 'enable_pinning', 'enable_comments',
                           'allow_anonymous_comments', 'require_comment_approval', 'enable_comment_replies',
-                          'block_meaningless_comments']:
+                          'require_anonymous_comment_captcha', 'block_meaningless_comments']:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs.update({'class': 'form-check-input'})
     

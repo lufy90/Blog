@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load dict_extras %}
 
 <div class="comments-section mt-5">
     <h3 class="mb-4">
@@ -21,10 +22,18 @@
             {% else %}
                 <form method="post" action="{% url 'entries:add_comment' post.id %}">
                     {% csrf_token %}
+                    {% if comment_form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for err in comment_form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+                        </div>
+                    {% endif %}
                     <div class="mb-3">
-                        <textarea name="content" class="form-control" rows="4" 
-                                  placeholder="{% trans 'Write your comment here...' %}" required 
-                                  maxlength="{{ settings.max_comment_length }}"></textarea>
+                        {{ comment_form.content }}
+                        {% if comment_form.content.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for e in comment_form.content.errors %}<div>{{ e }}</div>{% endfor %}
+                            </div>
+                        {% endif %}
                         <small class="text-muted">
                             {% trans "Maximum" %} {{ settings.max_comment_length }} {% trans "characters" %}
                         </small>
@@ -33,11 +42,32 @@
                     {% if not user.is_authenticated %}
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <input type="text" name="author_name" class="form-control" placeholder="{% trans 'Your name' %}" required>
+                            {{ comment_form.author_name }}
+                            {% if comment_form.author_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for e in comment_form.author_name.errors %}<div>{{ e }}</div>{% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <input type="email" name="author_email" class="form-control" placeholder="{% trans 'Your email' %}" required>
+                            {{ comment_form.author_email }}
+                            {% if comment_form.author_email.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for e in comment_form.author_email.errors %}<div>{{ e }}</div>{% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
+                    </div>
+                    {% endif %}
+
+                    {% if 'captcha' in comment_form.fields %}
+                    <div class="mb-2 mt-2 comment-captcha-wrap">
+                        {{ comment_form.captcha }}
+                        {% if comment_form.captcha.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for e in comment_form.captcha.errors %}<div>{{ e }}</div>{% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                     
@@ -101,13 +131,33 @@
                 </div>
                 
                 <!-- Reply Form (Hidden by default) -->
+                {% with rf=reply_forms|get_item:comment.id %}
                 <div class="reply-form mt-3" id="reply-form-{{ comment.id }}" style="display: none;">
                     <form method="post" action="{% url 'entries:add_reply' comment.id %}">
                         {% csrf_token %}
+                        {% if rf.non_field_errors %}
+                            <div class="alert alert-danger py-2 small">
+                                {% for err in rf.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+                            </div>
+                        {% endif %}
                         <div class="mb-3">
-                            <textarea name="content" class="form-control" rows="3" 
-                                      placeholder="{% trans 'Write your reply to' %} {{ comment.get_author_display }}..." required></textarea>
+                            {{ rf.content }}
+                            {% if rf.content.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for e in rf.content.errors %}<div>{{ e }}</div>{% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
+                        {% if 'captcha' in rf.fields %}
+                        <div class="mb-2 mt-1 reply-captcha-wrap">
+                            {{ rf.captcha }}
+                            {% if rf.captcha.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for e in rf.captcha.errors %}<div>{{ e }}</div>{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-paper-plane me-1"></i>{% trans "Post Reply" %}
@@ -119,6 +169,7 @@
                         </div>
                     </form>
                 </div>
+                {% endwith %}
             </div>
             
             <!-- Replies -->
@@ -231,6 +282,21 @@
     margin-top: 0.5rem;
 }
 
+.comment-captcha-wrap .blog-captcha-block,
+.reply-captcha-wrap .blog-captcha-block {
+    margin-bottom: 0;
+}
+
+.blog-captcha-img {
+    display: block;
+    max-height: 36px;
+    width: auto;
+    cursor: pointer;
+    vertical-align: middle;
+    border-radius: 3px;
+    border: 1px solid #dee2e6;
+}
+
 @media (max-width: 768px) {
     .comment-actions {
         opacity: 1;
@@ -250,6 +316,57 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    var commentsRoot = document.querySelector('.comments-section');
+    if (commentsRoot) {
+        function refreshCaptchaBlock(block) {
+            var url = block.dataset.captchaRefreshUrl;
+            if (!url) return;
+            var img = block.querySelector('.blog-captcha-img');
+            if (img) img.style.opacity = '0.55';
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            })
+                .then(function (r) {
+                    if (!r.ok) throw new Error('captcha refresh failed');
+                    return r.json();
+                })
+                .then(function (data) {
+                    if (img && data.image_url) {
+                        var sep = data.image_url.indexOf('?') >= 0 ? '&' : '?';
+                        img.src = data.image_url + sep + 't=' + Date.now();
+                    }
+                    var hid = block.querySelector('.blog-captcha-fields input[type="hidden"]');
+                    if (hid && data.key) hid.value = data.key;
+                    var txt = block.querySelector('.blog-captcha-fields input[type="text"]');
+                    if (txt) txt.value = '';
+                })
+                .catch(function () {})
+                .finally(function () {
+                    if (img) img.style.opacity = '';
+                });
+        }
+
+        commentsRoot.addEventListener('click', function (e) {
+            var captchaImg = e.target.closest('.blog-captcha-img');
+            if (!captchaImg) return;
+            var block = captchaImg.closest('.blog-captcha-block');
+            if (!block) return;
+            e.preventDefault();
+            refreshCaptchaBlock(block);
+        });
+
+        commentsRoot.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            var captchaImg = e.target.closest('.blog-captcha-img');
+            if (!captchaImg) return;
+            var block = captchaImg.closest('.blog-captcha-block');
+            if (!block) return;
+            e.preventDefault();
+            refreshCaptchaBlock(block);
+        });
+    }
+
     // Reply button functionality
     document.querySelectorAll('.reply-btn').forEach(button => {
         button.addEventListener('click', function() {

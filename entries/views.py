@@ -24,6 +24,21 @@ from settings.models import SiteSettings
 from django.http import HttpResponse, JsonResponse
 
 
+def _anonymous_comment_captcha_required(request):
+    if request.user.is_authenticated:
+        return False
+    return SiteSettings.get_value('require_anonymous_comment_captcha', True)
+
+
+def _first_form_error_message(form, default_message):
+    for field_name in form.errors:
+        for err in form.errors[field_name]:
+            return str(err)
+    for err in form.non_field_errors():
+        return str(err)
+    return default_message
+
+
 # Post Views
 class PostListView(ListView):
     model = Entry
@@ -95,6 +110,20 @@ class PostDetailView(DetailView):
         
         # Add settings to context
         context['settings'] = SiteSettings.get_settings()
+
+        use_captcha = _anonymous_comment_captcha_required(self.request)
+        context['comment_form'] = CommentForm(
+            user=self.request.user,
+            use_captcha=use_captcha,
+        )
+        reply_forms = {}
+        for c in post.get_approved_comments():
+            reply_forms[c.id] = ReplyForm(
+                user=self.request.user,
+                parent_comment=c,
+                use_captcha=use_captcha,
+            )
+        context['reply_forms'] = reply_forms
         
         # Indicate this is the public post view
         context['is_my_post_view'] = False
@@ -271,6 +300,20 @@ class MyPostDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         
         # Add settings to context
         context['settings'] = SiteSettings.get_settings()
+
+        use_captcha = _anonymous_comment_captcha_required(self.request)
+        context['comment_form'] = CommentForm(
+            user=self.request.user,
+            use_captcha=use_captcha,
+        )
+        reply_forms = {}
+        for c in post.get_approved_comments():
+            reply_forms[c.id] = ReplyForm(
+                user=self.request.user,
+                parent_comment=c,
+                use_captcha=use_captcha,
+            )
+        context['reply_forms'] = reply_forms
         
         # Indicate this is the my post view
         context['is_my_post_view'] = True
@@ -522,7 +565,8 @@ def add_comment(request, post_id):
         messages.error(request, 'Anonymous comments are not allowed. Please log in to comment.', extra_tags='update-error-tip')
         return redirect('entries:post_detail', slug=post.slug)
     
-    form = CommentForm(request.POST, user=request.user)
+    use_captcha = _anonymous_comment_captcha_required(request)
+    form = CommentForm(request.POST, user=request.user, use_captcha=use_captcha)
     if form.is_valid():
         comment = form.save(commit=False)
         comment.entry = post
@@ -552,7 +596,11 @@ def add_comment(request, post_id):
             comment.ip_address = get_client_ip(request)
             comment.save()
     else:
-        messages.error(request, 'There was an error with your comment. Please try again.', extra_tags='update-error-tip')
+        msg = _first_form_error_message(
+            form,
+            'There was an error with your comment. Please try again.',
+        )
+        messages.error(request, msg, extra_tags='update-error-tip')
     
     # Redirect to appropriate post detail page
     if post.visibility == 'public':
@@ -589,7 +637,13 @@ def add_reply(request, comment_id):
         else:
             return redirect('entries:my_post_detail', pk=post.pk)
     
-    form = ReplyForm(request.POST, user=request.user, parent_comment=parent_comment)
+    use_captcha = _anonymous_comment_captcha_required(request)
+    form = ReplyForm(
+        request.POST,
+        user=request.user,
+        parent_comment=parent_comment,
+        use_captcha=use_captcha,
+    )
     if form.is_valid():
         reply = form.save(commit=False)
         reply.entry = post
@@ -619,7 +673,11 @@ def add_reply(request, comment_id):
             reply.ip_address = get_client_ip(request)
             reply.save()
     else:
-        messages.error(request, 'There was an error with your reply. Please try again.', extra_tags='update-error-tip')
+        msg = _first_form_error_message(
+            form,
+            'There was an error with your reply. Please try again.',
+        )
+        messages.error(request, msg, extra_tags='update-error-tip')
     
     # Redirect to appropriate post detail page
     if post.visibility == 'public':

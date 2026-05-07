@@ -1,0 +1,20 @@
+{% load i18n %}
+<div class="blog-captcha-block" data-captcha-refresh-url="{% url 'captcha-refresh' %}">
+    <div class="blog-captcha-row d-flex align-items-center flex-wrap gap-2">
+        <div class="blog-captcha-visual d-inline-flex align-items-center flex-shrink-0 gap-1">
+            <img src="{{ image }}" alt="" class="blog-captcha-img captcha" role="button" tabindex="0"
+                 title="{% trans 'Click to refresh verification code' %}"/>
+            {% if audio %}
+                <a href="{{ audio }}" class="btn btn-outline-secondary btn-sm blog-captcha-audio py-0 px-2"
+                   title="{% trans 'Play CAPTCHA as audio file' %}">
+                    <i class="fas fa-volume-up" aria-hidden="true"></i>
+                </a>
+            {% endif %}
+        </div>
+        <div class="blog-captcha-fields flex-grow-1 min-w-0">
+            {% for widget in widget.subwidgets %}
+                {% include widget.template_name %}
+            {% endfor %}
+        </div>
+    </div>
+</div>

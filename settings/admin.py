@@ -34,7 +34,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ('Comment Settings', {
             'fields': (
                 'enable_comments', 'allow_anonymous_comments', 'require_comment_approval',
-                'enable_comment_replies', 'max_comment_length', 'comment_sensitive_keywords',
+                'enable_comment_replies', 'require_anonymous_comment_captcha', 'max_comment_length', 'comment_sensitive_keywords',
                 'block_meaningless_comments',
                 'meaningless_rate_limit_max_attempts',
                 'meaningless_rate_limit_window_minutes',
