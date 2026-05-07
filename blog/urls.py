@@ -23,6 +23,7 @@ from .admin import admin_site
 
 urlpatterns = [
     path('admin/', admin_site.urls),  # Use custom admin site
+    path('captcha/', include('captcha.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('i18n/', include('django.conf.urls.i18n')),
     path('', include('entries.urls')),

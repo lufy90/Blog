@@ -12,10 +12,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+import django
 from django.contrib.messages import constants as message_constants
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Lets FORM_RENDERER use TemplatesSetting while still resolving Django built-in widget templates.
+DJANGO_FORMS_TEMPLATE_DIR = Path(django.__file__).resolve().parent / "forms" / "templates"
 
 
 # Quick-start development settings - unsuitable for production
@@ -41,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'captcha',
     'entries',
     'settings.apps.SettingsConfig',
 ]
@@ -62,7 +66,7 @@ ROOT_URLCONF = 'blog.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates', DJANGO_FORMS_TEMPLATE_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -157,6 +161,9 @@ MESSAGE_TAGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Use project TEMPLATES so widget overrides (e.g. captcha/widgets/captcha.html) resolve from BASE_DIR/templates.
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
+
 # Authentication settings
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -164,3 +171,7 @@ LOGOUT_REDIRECT_URL = '/'
 CSRF_TRUSTED_ORIGINS = [
      'http://localhost:8004',
 ]
+
+# django-simple-captcha: smaller footprint on comment forms (see templates/captcha/widgets/captcha.html)
+CAPTCHA_FONT_SIZE = 17
+CAPTCHA_IMAGE_SIZE = (108, 36)

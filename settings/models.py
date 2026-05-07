@@ -91,6 +91,10 @@ class SiteSettings(models.Model):
     allow_anonymous_comments = models.BooleanField(default=True, help_text="Allow anonymous users to post comments")
     require_comment_approval = models.BooleanField(default=False, help_text="Require admin approval for new comments")
     enable_comment_replies = models.BooleanField(default=True, help_text="Allow users to reply to comments")
+    require_anonymous_comment_captcha = models.BooleanField(
+        default=True,
+        help_text="When enabled, anonymous users must pass image verification to post comments or replies.",
+    )
     max_comment_length = models.PositiveIntegerField(default=1000, help_text="Maximum length for comments (characters)")
     comment_sensitive_keywords = models.TextField(
         blank=True,

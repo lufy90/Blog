@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
+from captcha.fields import CaptchaField, CaptchaTextInput
+from settings.models import SiteSettings
 from .models import Entry, Category, FileModel, Comment
 
 
@@ -116,7 +118,23 @@ class CommentForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        use_captcha = kwargs.pop('use_captcha', False)
         super().__init__(*args, **kwargs)
+
+        max_len = SiteSettings.get_value('max_comment_length', 1000)
+        self.fields['content'].widget.attrs['maxlength'] = str(max_len)
+
+        if use_captcha:
+            self.fields['captcha'] = CaptchaField(
+                label='Verification',
+                widget=CaptchaTextInput(
+                    attrs={
+                        'class': 'form-control',
+                        'placeholder': 'Enter the characters shown in the image',
+                        'autocomplete': 'off',
+                    }
+                ),
+            )
         
         # If user is authenticated, hide name and email fields
         if self.user and self.user.is_authenticated:
@@ -142,7 +160,6 @@ class CommentForm(forms.ModelForm):
         # Check comment length
         content = cleaned_data.get('content', '')
         if content:
-            from settings.models import SiteSettings
             max_length = SiteSettings.get_value('max_comment_length', 1000)
             if len(content) > max_length:
                 raise forms.ValidationError(f'Comment is too long. Maximum {max_length} characters allowed.')
@@ -183,7 +200,35 @@ class ReplyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         self.parent_comment = kwargs.pop('parent_comment', None)
+        use_captcha = kwargs.pop('use_captcha', False)
         super().__init__(*args, **kwargs)
+
+        max_len = SiteSettings.get_value('max_comment_length', 1000)
+        self.fields['content'].widget.attrs['maxlength'] = str(max_len)
+
+        if use_captcha:
+            self.fields['captcha'] = CaptchaField(
+                label='Verification',
+                widget=CaptchaTextInput(
+                    attrs={
+                        'class': 'form-control',
+                        'placeholder': 'Enter the characters shown in the image',
+                        'autocomplete': 'off',
+                    }
+                ),
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        content = cleaned_data.get('content', '')
+        if content:
+            max_length = SiteSettings.get_value('max_comment_length', 1000)
+            if len(content) > max_length:
+                self.add_error(
+                    'content',
+                    f'Reply is too long. Maximum {max_length} characters allowed.',
+                )
+        return cleaned_data
     
     def save(self, commit=True):
         reply = super().save(commit=False)

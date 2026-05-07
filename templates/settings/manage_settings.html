@@ -390,6 +390,12 @@
                                     </label>
                                 </div>
                                 <div class="form-check mb-2">
+                                    {{ form.require_anonymous_comment_captcha }}
+                                    <label class="form-check-label" for="{{ form.require_anonymous_comment_captcha.id_for_label }}">
+                                        Require image verification for anonymous comments and replies
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
                                     {{ form.block_meaningless_comments }}
                                     <label class="form-check-label" for="{{ form.block_meaningless_comments.id_for_label }}">
                                         Block meaningless comments (random keys, repetition, no letters)
@@ -500,6 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '{{ form.allow_anonymous_comments.id_for_label }}',
         '{{ form.require_comment_approval.id_for_label }}',
         '{{ form.enable_comment_replies.id_for_label }}',
+        '{{ form.require_anonymous_comment_captcha.id_for_label }}',
         '{{ form.block_meaningless_comments.id_for_label }}',
         '{{ form.max_comment_length.id_for_label }}',
         '{{ form.comment_sensitive_keywords.id_for_label }}',
